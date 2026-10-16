@@ -785,3 +785,14 @@
   line-height: 1;
 }
 
+.food-cell {
+  display: grid;
+  place-items: center;
+}
+
+.food-icon {
+  color: #ff8ab9;
+  font-size: clamp(8px, 1.2vw, 17px);
+  line-height: 1;
+  filter: drop-shadow(0 0 5px #ff8ab966);
+}
