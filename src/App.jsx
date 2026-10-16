@@ -8,6 +8,23 @@ function App() {
   const [score, setScore] = useState(0)
   const [gameStatus, setGameStatus] = useState('ready')
 
+  function createFood(currentSnake) {
+    const emptyCells = []
+    for (let y = 0; y < BOARD_ROWS; y += 1) {
+      for (let x = 0; x < BOARD_COLUMNS; x += 1) {
+        const occupied = currentSnake.some(segment => segment.x === x && segment.y === y)
+       
+        if (!occupied) {
+          emptyCells.push({ x, y })
+        }
+      }
+    }
+    if (emptyCells.length === 0) return null
+
+    const randomIndex = Math.floor(Math.random() * emptyCells.length)
+    return emptyCells[randomIndex]
+  }
+
 const BOARD_COLUMNS = 20
 const BOARD_ROWS = 16
 const GAME_SPEED = 140
@@ -21,21 +38,68 @@ const [snake, setSnake] = useState([
 const [direction, setDirection] = useState({ x: 1, y: 0 })
 const [isPlaying, setIsPlaying] = useState(false)
 
+function restartGame() {
+  const startingSnake = [
+    { x: 5, y: 4 },
+    { x: 4, y: 4 },
+    { x: 3, y: 4 },
+  ]
+
+  setSnake(startingSnake)
+  setDirection({ x: 1, y: 0 })
+  setFood(createFood(startingSnake))
+  setScore(0)
+  setIsPlaying(false)
+  setGameStatus('ready')
+}
+
 const moveSnake = useCallback(() => {
-  setSnake((previousSnake) => {
-    const head = previousSnake[0]
+  if (gameStatus !== 'playing') return
 
-    const newHead = {
-      x: head.x + direction.x,
-      y: head.y + direction.y,
-    }
+  const head = snake[0]
 
-    return [
-      newHead,
-      ...previousSnake.slice(0, -1),
-    ]
-  })
-}, [direction])
+  const newHead = {
+    x: head.x + direction.x,
+    y: head.y + direction.y,
+  }
+
+  const hitWall =
+    newHead.x < 0 ||
+    newHead.x >= BOARD_COLUMNS ||
+    newHead.y < 0 ||
+    newHead.y >= BOARD_ROWS
+
+  if (hitWall) {
+    setGameStatus('over')
+    setIsPlaying(false)
+    return
+  }
+
+  const eating = food !== null && newHead.x === food.x && newHead.y === food.y
+
+  const bodyToCheck = eating ? snake : snake.slice(0, -1)
+
+  const hitSelf = bodyToCheck.some(
+    (segment) => segment.x === newHead.x && segment.y === newHead.y
+  )
+
+  if (hitSelf) {
+    setGameStatus('over')
+    setIsPlaying(false)
+    return
+  }
+
+  const newSnake = eating
+    ? [newHead, ...snake]
+    : [newHead, ...snake.slice(0, -1)]
+
+  setSnake(newSnake)
+
+  if (eating) {
+    setScore((previousScore) => previousScore + 10)
+    setFood(createFood(newSnake))
+  }
+}, [direction, food, gameStatus, snake])
 
     useEffect(() => {
       if (!isPlaying) return
@@ -67,6 +131,7 @@ const moveSnake = useCallback(() => {
       if (isReversing) return
 
       setDirection(nextDirection)
+      setGameStatus('playing')
       setIsPlaying(true)
     }
 
@@ -146,7 +211,7 @@ const moveSnake = useCallback(() => {
 
             <div className="score-display">
               <span>YOUR SCORE</span>
-              <strong>000</strong>
+              <strong>{String(score).padStart(3, '0')}</strong>
             </div>
           </div>
 
@@ -173,7 +238,7 @@ const moveSnake = useCallback(() => {
 
                   const isSnake = segmentIndex !== -1
                   const isHead = segmentIndex === 0
-                  const isFood = food.x === x && food.y === y
+                  const isFood = food !== null && x === food.x && y === food.y
 
                   return (
                     <span
@@ -199,6 +264,20 @@ const moveSnake = useCallback(() => {
               )}
             </div>
           </div>
+
+          {gameStatus === 'over' && (
+  <div className="game-over-overlay">
+    <div className="game-over-card">
+      <span className="game-over-heart">♡</span>
+      <p className="eyebrow">OH, SNAKE!</p>
+      <h2>Game over</h2>
+      <p>You scored {score} points.</p>
+      <button onClick={restartGame}>
+        Play again ↻
+      </button>
+    </div>
+  </div>
+)}
 
           <div className="game-card-footer">
             <div className="legend">
