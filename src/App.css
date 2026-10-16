@@ -854,3 +854,88 @@
   background: #d94d91;
 }
 
+
+.game-controls {
+  display: flex;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.control-button {
+  flex: 1;
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 750;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.control-button:hover {
+  transform: translateY(-1px);
+}
+
+.primary-control {
+  color: white;
+  background: #d94d91;
+}
+
+.primary-control:hover {
+  background: #bd3e7b;
+}
+
+.secondary-control {
+  border-color: #765a80;
+  color: #fff5fb;
+  background: transparent;
+}
+
+.secondary-control:hover {
+  background: #ffffff12;
+}
+
+
+.score-group {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.high-score-display strong {
+  color: #f8d5e8;
+}
+
+.status-playing .status-dot {
+  background: #73bd92;
+  box-shadow: 0 0 9px #73bd9266;
+}
+
+.status-paused .status-dot {
+  background: #f5c66a;
+}
+
+.status-over .status-dot {
+  background: #ff7796;
+}
+
+.status-ready .status-dot {
+  background: #73bd92;
+}
+
+@media (max-width: 480px) {
+  .score-group {
+    gap: 12px;
+  }
+
+  .score-display strong {
+    font-size: 20px;
+  }
+
+  .score-display > span {
+    font-size: 7px;
+    letter-spacing: 1px;
+  }
+}
+

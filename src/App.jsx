@@ -8,12 +8,21 @@ function App() {
   const [score, setScore] = useState(0)
   const [gameStatus, setGameStatus] = useState('ready')
   const [highScore, setHighScore] = useState(() => {
-    try{
+    try {
       return Number(localStorage.getItem('riaSnakeHighScore')) || 0
     } catch {
       return 0
     }
   })
+
+  const statusLabels = {
+    ready: 'READY TO PLAY',
+    playing: 'PLAYING NOW',
+    paused: 'PAUSED',
+    over: 'GAME OVER',
+  }
+
+  const statusLabel = statusLabels[gameStatus]
 
   function createFood(currentSnake) {
     const emptyCells = []
@@ -56,8 +65,25 @@ function restartGame() {
   setDirection({ x: 1, y: 0 })
   setFood(createFood(startingSnake))
   setScore(0)
-  setIsPlaying(false)
   setGameStatus('ready')
+}
+
+function startGame() {
+  if (gameStatus === 'over') {
+    restartGame()
+    setGameStatus('playing')
+    return
+  }
+
+  setGameStatus('playing')
+}
+
+function togglePause() {
+  if (gameStatus === 'playing') {
+    setGameStatus('paused')
+  } else if (gameStatus === 'paused') {
+    setGameStatus('playing')
+  }
 }
 
 const moveSnake = useCallback(() => {
@@ -78,7 +104,6 @@ const moveSnake = useCallback(() => {
 
   if (hitWall) {
     setGameStatus('over')
-    setIsPlaying(false)
     return
   }
 
@@ -116,12 +141,12 @@ const moveSnake = useCallback(() => {
 }, [direction, food, gameStatus, snake])
 
     useEffect(() => {
-      if (!isPlaying) return
+      if (gameStatus !== 'playing') return
     
       const timerId = setInterval(moveSnake, GAME_SPEED)
     
       return () => clearInterval(timerId)
-    }, [isPlaying, moveSnake])
+    }, [gameStatus, moveSnake])
 
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -130,11 +155,15 @@ const moveSnake = useCallback(() => {
         ArrowDown: { x: 0, y: 1 },
         ArrowLeft: { x: -1, y: 0 },
         ArrowRight: { x: 1, y: 0 },
+        w: { x: 0, y: -1 },
+        a: { x: -1, y: 0 },
+        s: { x: 0, y: 1 },
+        d: { x: 1, y: 0 },
       }
 
-      const nextDirection = directions[event.key]
+      const nextDirection = directions[event.key] || directions[event.key.toLowerCase()]
 
-      if (!nextDirection) return
+      if (!nextDirection || gameStatus === 'over') return
 
       event.preventDefault()
 
@@ -146,7 +175,6 @@ const moveSnake = useCallback(() => {
 
       setDirection(nextDirection)
       setGameStatus('playing')
-      setIsPlaying(true)
     }
 
     window.addEventListener('keydown', handleKeyDown)
@@ -154,7 +182,7 @@ const moveSnake = useCallback(() => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
     }
-  }, [direction])
+  }, [direction, gameStatus])
 
   useEffect(() => {
     try {
@@ -174,10 +202,10 @@ const moveSnake = useCallback(() => {
 
         <span className="edition-label">THE LITTLE ARCADE</span>
 
-        <div className="topbar-status">
-          <span className="status-dot" />
-          READY TO PLAY
-        </div>
+        <div className={`topbar-status status-${gameStatus}`}>
+  <span className="status-dot" />
+  {statusLabel}
+</div>
       </header>
 
       <section className="hero">
@@ -231,11 +259,43 @@ const moveSnake = useCallback(() => {
               </div>
             </div>
 
-            <div className="score-display">
-              <span>YOUR SCORE</span>
-              <strong>{String(score).padStart(3, '0')}</strong>
-            </div>
+            <div className="score-group">
+  <div className="score-display">
+    <span>YOUR SCORE</span>
+    <strong>{String(score).padStart(3, '0')}</strong>
+  </div>
+
+  <div className="score-display high-score-display">
+    <span>BEST SCORE</span>
+    <strong>{String(highScore).padStart(3, '0')}</strong>
+  </div>
+</div>
           </div>
+
+          <div className="game-controls">
+  {gameStatus === 'playing' ? (
+    <button
+      className="control-button primary-control"
+      onClick={togglePause}
+    >
+      Pause
+    </button>
+  ) : (
+    <button
+      className="control-button primary-control"
+      onClick={startGame}
+    >
+      {gameStatus === 'paused' ? 'Resume' : 'Start game'}
+    </button>
+  )}
+
+  <button
+    className="control-button secondary-control"
+    onClick={restartGame}
+  >
+    Restart ↻
+  </button>
+</div>
 
           <div className="game-board live-game-board">
             <div className="board-grid" />
