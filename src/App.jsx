@@ -7,6 +7,13 @@ function App() {
   const [food, setFood] = useState({ x: 12, y: 8 })
   const [score, setScore] = useState(0)
   const [gameStatus, setGameStatus] = useState('ready')
+  const [highScore, setHighScore] = useState(() => {
+    try{
+      return Number(localStorage.getItem('riaSnakeHighScore')) || 0
+    } catch {
+      return 0
+    }
+  })
 
   function createFood(currentSnake) {
     const emptyCells = []
@@ -96,7 +103,14 @@ const moveSnake = useCallback(() => {
   setSnake(newSnake)
 
   if (eating) {
-    setScore((previousScore) => previousScore + 10)
+    setScore((previousScore) => {
+      const nextScore = previousScore + 2
+
+      setHighScore((previousHighScore) => Math.max(previousHighScore, nextScore))
+
+      return nextScore
+    })
+
     setFood(createFood(newSnake))
   }
 }, [direction, food, gameStatus, snake])
@@ -141,6 +155,14 @@ const moveSnake = useCallback(() => {
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [direction])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('riaSnakeHighScore', String(highScore))
+    } catch {
+      // The game can still work if browser storage is unavailable.
+    }
+  }, [highScore])
 
   return (
     <main className="app-shell">
