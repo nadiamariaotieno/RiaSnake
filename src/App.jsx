@@ -4,6 +4,9 @@ import './App.css'
 
 function App() {
   const [message, setMessage] = useState('Your first adventure is almost ready.')
+  const [food, setFood] = useState({ x: 12, y: 8 })
+  const [score, setScore] = useState(0)
+  const [gameStatus, setGameStatus] = useState('ready')
 
 const BOARD_COLUMNS = 20
 const BOARD_ROWS = 16
@@ -170,6 +173,7 @@ const moveSnake = useCallback(() => {
 
                   const isSnake = segmentIndex !== -1
                   const isHead = segmentIndex === 0
+                  const isFood = food.x === x && food.y === y
 
                   return (
                     <span
@@ -178,12 +182,16 @@ const moveSnake = useCallback(() => {
                         'grid-cell',
                         isSnake ? 'snake-cell' : '',
                         isHead ? 'snake-head-cell' : '',
+                        isFood ? 'food-cell' : '',
                       ].filter(Boolean).join(' ')}
                     >
                       {isHead ? (
                         <span className="live-snake-eyes" aria-hidden="true">
                           ••
                         </span>
+                      ) : null}
+                      {isFood ? (
+                        <span className="food-icon" aria-hidden="true">♥</span>
                       ) : null}
                     </span>
                   )
