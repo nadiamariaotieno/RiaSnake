@@ -1,9 +1,78 @@
 
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import './App.css'
 
 function App() {
   const [message, setMessage] = useState('Your first adventure is almost ready.')
+
+const BOARD_COLUMNS = 20
+const BOARD_ROWS = 16
+const GAME_SPEED = 140
+
+const [snake, setSnake] = useState([
+  { x: 5, y: 4 },
+  { x: 4, y: 4 },
+  { x: 3, y: 4 },
+])
+
+const [direction, setDirection] = useState({ x: 1, y: 0 })
+const [isPlaying, setIsPlaying] = useState(false)
+
+const moveSnake = useCallback(() => {
+  setSnake((previousSnake) => {
+    const head = previousSnake[0]
+
+    const newHead = {
+      x: head.x + direction.x,
+      y: head.y + direction.y,
+    }
+
+    return [
+      newHead,
+      ...previousSnake.slice(0, -1),
+    ]
+  })
+}, [direction])
+
+    useEffect(() => {
+      if (!isPlaying) return
+    
+      const timerId = setInterval(moveSnake, GAME_SPEED)
+    
+      return () => clearInterval(timerId)
+    }, [isPlaying, moveSnake])
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      const directions = {
+        ArrowUp: { x: 0, y: -1 },
+        ArrowDown: { x: 0, y: 1 },
+        ArrowLeft: { x: -1, y: 0 },
+        ArrowRight: { x: 1, y: 0 },
+      }
+
+      const nextDirection = directions[event.key]
+
+      if (!nextDirection) return
+
+      event.preventDefault()
+
+      const isReversing =
+        nextDirection.x === -direction.x &&
+        nextDirection.y === -direction.y
+
+      if (isReversing) return
+
+      setDirection(nextDirection)
+      setIsPlaying(true)
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [direction])
 
   return (
     <main className="app-shell">
@@ -78,30 +147,48 @@ function App() {
             </div>
           </div>
 
-          <div className="game-board" aria-label="Decorative preview of the game board">
+          <div className="game-board live-game-board">
             <div className="board-grid" />
+            <div
+              className="live-grid"
+              style={{
+                gridTemplateColumns: `repeat(${BOARD_COLUMNS}, 1fr)`,
+                gridTemplateRows: `repeat(${BOARD_ROWS}, 1fr)`,
+              }}
+              role="img"
+              aria-label="RiaSnake game board"
+            >
+              {Array.from(
+                { length: BOARD_COLUMNS * BOARD_ROWS },
+                (_, index) => {
+                  const x = index % BOARD_COLUMNS
+                  const y = Math.floor(index / BOARD_COLUMNS)
 
-            <div className="decorative-snake" aria-hidden="true">
-              <span className="snake-segment snake-head">
-                <span className="snake-eye" />
-                <span className="snake-eye" />
-              </span>
-              <span className="snake-segment" />
-              <span className="snake-segment" />
-              <span className="snake-segment" />
-              <span className="snake-segment" />
-              <span className="snake-segment" />
-            </div>
+                  const segmentIndex = snake.findIndex(
+                    (segment) => segment.x === x && segment.y === y
+                  )
 
-            <div className="food strawberry" aria-hidden="true">♥</div>
-            <div className="food sparkle sparkle-one" aria-hidden="true">✦</div>
-            <div className="food sparkle sparkle-two" aria-hidden="true">✧</div>
+                  const isSnake = segmentIndex !== -1
+                  const isHead = segmentIndex === 0
 
-            <div className="board-overlay">
-              <span className="overlay-sparkle">✳</span>
-              <h2>A sweet little challenge</h2>
-              <p>The game begins one step at a time.</p>
-              <span className="preview-label">GAME PREVIEW</span>
+                  return (
+                    <span
+                      key={`${x}-${y}`}
+                      className={[
+                        'grid-cell',
+                        isSnake ? 'snake-cell' : '',
+                        isHead ? 'snake-head-cell' : '',
+                      ].filter(Boolean).join(' ')}
+                    >
+                      {isHead ? (
+                        <span className="live-snake-eyes" aria-hidden="true">
+                          ••
+                        </span>
+                      ) : null}
+                    </span>
+                  )
+                }
+              )}
             </div>
           </div>
 
