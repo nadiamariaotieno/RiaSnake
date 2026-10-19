@@ -259,17 +259,6 @@ const moveSnake = useCallback(() => {
               </div>
             </div>
 
-            <div className="score-group">
-  <div className="score-display">
-    <span>YOUR SCORE</span>
-    <strong>{String(score).padStart(3, '0')}</strong>
-  </div>
-
-  <div className="score-display high-score-display">
-    <span>BEST SCORE</span>
-    <strong>{String(highScore).padStart(3, '0')}</strong>
-  </div>
-</div>
           </div>
 
           <div className="game-controls">
@@ -321,6 +310,9 @@ const moveSnake = useCallback(() => {
                   const isSnake = segmentIndex !== -1
                   const isHead = segmentIndex === 0
                   const isFood = food !== null && x === food.x && y === food.y
+                  const shade = snake.length <= 1 ? 0 : segmentIndex / (snake.length - 1)
+                  const mixChannel = (head, tail) => Math.round(head + (tail - head) * shade)
+                  const segmentColor = `rgb(${mixChannel(244, 217)}, ${mixChannel(155, 77)}, ${mixChannel(200, 145)})`
 
                   return (
                     <span
@@ -331,20 +323,21 @@ const moveSnake = useCallback(() => {
                         isHead ? 'snake-head-cell' : '',
                         isFood ? 'food-cell' : '',
                       ].filter(Boolean).join(' ')}
+                      style={isSnake ? { backgroundColor: segmentColor } : undefined}
                     >
-                      {isHead ? (
-                        <span className="live-snake-eyes" aria-hidden="true">
-                          ••
-                        </span>
-                      ) : null}
                       {isFood ? (
-                        <span className="food-icon" aria-hidden="true">♥</span>
+                        <span className="food-icon" aria-hidden="true" />
                       ) : null}
                     </span>
                   )
                 }
               )}
             </div>
+          </div>
+
+          <div className="arcade-readout" aria-live="polite">
+            <span>SCORE:{String(score).padStart(2, '0')}</span>
+            <span>BEST:{String(highScore).padStart(2, '0')}</span>
           </div>
 
           {gameStatus === 'over' && (
