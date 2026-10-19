@@ -1,8 +1,8 @@
 
 :root {
   font-family: Inter, "Segoe UI", Arial, sans-serif;
-  color: #321d3c;
-  background: #fffafc;
+  color: #8d4a62;
+  background: #ffe9f3;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -41,11 +41,11 @@ a {
 
 button:focus-visible,
 a:focus-visible {
-  outline: 3px solid #ed6ba9;
+  outline: 3px solid #f7b2c4;
   outline-offset: 4px;
 }
 
 ::selection {
-  color: #321d3c;
-  background: #ffc4df;
+  color: #8d4a62;
+  background: #ffc1d9;
 }
